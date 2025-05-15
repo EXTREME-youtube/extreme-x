@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High Scores</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Press Start 2P', sans-serif;
+            background-color: #111827; /* Dark background */
+            color: #f9fafb; /* Light text */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px; /* Increased max-width for larger screens */
+            background-color: #1f2937; /* Slightly lighter container background */
+            padding: 24px; /* Increased padding */
+            border-radius: 12px; /* More rounded corners */
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3); /* Deeper shadow */
+            text-align: center;
+            border: 1px solid #374151; /* Add a border */
+        }
+
+        h1 {
+            font-size: 2.25rem; /* Larger heading */
+            margin-bottom: 1.5rem; /* Increased margin */
+            color: #6366f1; /* Vibrant purple */
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* Text shadow */
+        }
+
+        #highscores-list {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 2rem; /* Increased margin */
+        }
+
+        #highscores-list li {
+            background-color: #242424; /* Darker list item background */
+            padding: 16px; /* Increased padding */
+            margin-bottom: 8px; /* Increased margin */
+            border-radius: 8px; /* More rounded corners */
+            border: 1px solid #4a5568; /* Add a border */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Subtle shadow */
+            display: flex;
+            justify-content: space-between; /* Space between player and score */
+            align-items: center; /* Vertically center items */
+        }
+
+        #highscores-list li span {
+            font-weight: 600; /* Make player name bold */
+            color: #e5e7eb;
+        }
+
+        #highscores-list li em {
+            color: #a855f7; /* Highlight the score */
+            font-style: normal;  /* make sure font style is normal */
+        }
+
+        .loading-message, .error-message {
+            margin-top: 1rem;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .loading-message {
+            background-color: #fef08a; /* Yellow */
+            color: #1e293b;
+            border: 1px solid #fde047;
+        }
+
+        .error-message {
+            background-color: #fecaca; /* Red */
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 16px; /* Adjusted padding for smaller screens */
+            }
+            h1 {
+                font-size: 2rem; /* Adjusted heading size for smaller screens */
+            }
+            #highscores-list li {
+                padding: 12px; /* Adjusted list item padding */
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-50">
+    <div class="container">
+        <h1 class="text-purple-500 text-3xl font-bold mb-6">High Scores</h1>
+        <ul id="highscores-list" class="mb-8">
+            <li class="loading-message">Loading scores...</li>
+        </ul>
+        <p id="error-message" class="error-message" style="display: none;"></p>
+    </div>
+
+    <script>
+        const highscoresList = document.getElementById('highscores-list');
+        const errorMessage = document.getElementById('error-message');
+        const apiEndpoint = '/api/get_scores'; //  Correct endpoint
+
+        function displayHighScores(scores) {
+            highscoresList.innerHTML = ''; // Clear loading message
+            if (scores.length === 0) {
+                highscoresList.innerHTML = '<li class="text-center py-4">No scores yet. Be the first to score!</li>';
+                return;
+            }
+            scores.forEach((entry, index) => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `
+                    <span>${entry.player}</span>
+                    <em>${entry.score}</em>
+                `;
+                highscoresList.appendChild(listItem);
+            });
+        }
+
+        function handleFetchError(error) {
+            errorMessage.textContent = 'Failed to fetch scores: ' + error.message;
+            errorMessage.style.display = 'block';
+            highscoresList.innerHTML = ''; // Clear any previous content
+        }
+
+        async function fetchHighScores() {
+            try {
+                const response = await fetch(apiEndpoint);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                // console.log(data); // Debugging
+                if (data && data.scores) {
+                    displayHighScores(data.scores);
+                } else {
+                    handleFetchError(new Error("Invalid data format received from the API."));
+                }
+
+            } catch (error) {
+                handleFetchError(error);
+            }
+        }
+
+        fetchHighScores(); // Call function to get scores
+    </script>
+</body>
+</html>
